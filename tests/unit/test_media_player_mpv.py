@@ -53,6 +53,19 @@ class MediaPlayerMpvTestCase(TestCase):
         self.assertFalse(version.is_postrelease)
 
     @patch("dakara_player.media_player.mpv.mpv.MPV")
+    def test_get_version_v(self, mocked_mpv_class):
+        """Test to get the mpv stable version."""
+        # mock the version of mpv
+        mocked_mpv_class.return_value.mpv_version = "mpv v0.37.0"
+
+        # call the method
+        version = MediaPlayerMpvOld.get_version()
+
+        # assert the result
+        self.assertEqual(version.base_version, "0.37.0")
+        self.assertFalse(version.is_postrelease)
+
+    @patch("dakara_player.media_player.mpv.mpv.MPV")
     def test_get_version_not_found(self, mocked_mpv_class):
         """Test to get the mpv version when it is not available."""
         # mock the version of mpv
