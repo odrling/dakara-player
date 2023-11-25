@@ -277,7 +277,7 @@ class MediaPlayerMpvIntegrationTestCase(TestCasePollerKara):
             self.assertEqual(mpv_player.player.path, self.song2_path)
 
             # check audio track
-            self.assertEqual(mpv_player.player.audio, 3)
+            self.assertEqual(mpv_player.player.audio, 2)
 
             # assert the started song callback has been called
             mpv_player.callbacks["started_song"].assert_called_with(

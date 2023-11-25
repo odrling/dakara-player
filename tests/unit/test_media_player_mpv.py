@@ -727,6 +727,7 @@ class MediaPlayerMpvOldTestCase(MediaPlayerMpvModelTestCase):
         mpv_player, _, _ = self.get_instance()
         mpv_player.playlist_entry_data["song"].path = "test_file"
         mpv_player.playlist_entry_data["song"].path_subtitle = None
+        mpv_player.playlist_entry_data["use_instrumental"] = False
 
         mpv_player.play("song")
 

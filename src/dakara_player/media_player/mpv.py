@@ -392,15 +392,14 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
             # manage instrumental track/file
             path_audio = self.playlist_entry_data["song"].path_audio
             if path_audio:
-                if path_audio == "self":
-                    # mpv use different index for each track, so we can safely request
-                    # the second audio track
-                    self.player.audio = 2
-                    logger.debug("Requesting to play audio track 2")
+                self.player.audio_files = [path_audio]
 
-                else:
-                    self.player.audio_files = [path_audio]
-                    logger.debug("Requesting to play audio file %s", path_audio)
+            if self.playlist_entry_data["use_instrumental"]:
+                self.player.aid = 2
+                logger.debug("Requesting to play audio track 2")
+            else:
+                self.player.aid = 1
+                logger.debug("Requesting to play audio track 1")
 
             # if the subtitle file cannot be discovered, do not request it
             if self.playlist_entry_data["song"].path_subtitle:
@@ -555,8 +554,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
         self.playlist_entry_data["song"].path_subtitle = path_subtitle
 
         # manage instrumental
-        if playlist_entry["use_instrumental"]:
-            self.manage_instrumental(playlist_entry, file_path)
+        self.manage_instrumental(playlist_entry, file_path)
 
     def manage_instrumental(self, playlist_entry, file_path):
         """Manage the requested instrumental track.
@@ -568,10 +566,12 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
         discover and set the instrumental track when the media starts.
 
         Args:
-            playlist_entry (dict): Playlist entry data. Must contain the key
-                `use_instrumental`.
+            playlist_entry (dict): Playlist entry data.
             file_path (path.Path): Path of the song file.
         """
+        use_instrumental = playlist_entry.get("use_instrumental", False)
+        self.playlist_entry_data["use_instrumental"] = use_instrumental
+
         # get instrumental file if possible
         audio_path = self.get_instrumental_file(file_path)
 
@@ -587,7 +587,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
 
         # otherwise mark to look for instrumental track in internal tracks when
         # starting to read the media
-        self.playlist_entry_data["song"].path_audio = "self"
+        self.playlist_entry_data["song"].path_audio = None
         logger.info("Requesting to play instrumental track of '%s'", file_path)
 
     def clear_playlist_entry_player(self):
