@@ -408,6 +408,8 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
             if self.playlist_entry_data["song"].path_subtitle:
                 self.player.sub_files = [self.playlist_entry_data["song"].path_subtitle]
 
+            self.player.sid = 1
+
             self.player.play(self.playlist_entry_data["song"].path)
 
             return
