@@ -415,6 +415,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
                 ]
 
             self.player.play(str(self.playlist_entry_data["song"].path))
+            self.player.sid = 1
 
             return
 
