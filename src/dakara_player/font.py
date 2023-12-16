@@ -26,12 +26,16 @@ def get_font_loader_class():
     if system == "Linux":
         return FontLoaderLinux
 
-    if system == "Windows":
+    elif system == "Darwin":
+        return FontLoaderMacOS
+
+    elif system == "Windows":
         return FontLoaderWindows
 
-    raise NotImplementedError(
-        "This operating system ({}) is not currently supported".format(system)
-    )
+    else:
+        raise NotImplementedError(
+            "This operating system ({}) is not currently supported".format(system)
+        )
 
 
 class FontLoader(ABC):
@@ -97,8 +101,8 @@ class FontLoader(ABC):
                 yield font_file_path
 
 
-class FontLoaderLinux(FontLoader):
-    """Font loader for Linux.
+class FontLoaderUnix(FontLoader):
+    """Font loader for Unix systems.
 
     It copies fonts to load in the user fonts directory and removes them on
     exit. Using symbolic links is not safe as the location of the package fonts
@@ -109,7 +113,7 @@ class FontLoaderLinux(FontLoader):
 
     Example of use:
 
-    >>> with FontLoaderLinux() as loader:
+    >>> with FontLoaderUnix(system_font_dir=..., user_font_dir=...) as loader:
     ...     loader.load()
     ...     # do stuff while fonts are loaded
     >>> # now fonts are unloaded
@@ -124,13 +128,14 @@ class FontLoaderLinux(FontLoader):
             in user directory.
     """
 
-    GREETINGS = "Font loader for Linux selected"
-    FONT_DIR_SYSTEM = Path("/") / "usr" / "share" / "fonts"
-    FONT_DIR_USER = Path("~") / ".fonts"
+    GREETINGS = "Font loader for Unix selected"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, system_font_dir: Path, user_font_dir: Path, **kwargs):
         # call parent constructor
         super().__init__(*args, **kwargs)
+
+        self.system_font_dir = system_font_dir
+        self.user_font_dir = user_font_dir
 
         # create list of fonts
         self.fonts_loaded = {}
@@ -141,7 +146,7 @@ class FontLoaderLinux(FontLoader):
         Returns:
             list of pathlib.Path: List of font paths.
         """
-        return [path.name for path in self.FONT_DIR_SYSTEM.rglob("*")]
+        return [path.name for path in self.system_font_dir.rglob("*")]
 
     def get_user_font_name_list(self):
         """Retrieve the list of user fonts.
@@ -149,12 +154,12 @@ class FontLoaderLinux(FontLoader):
         Returns:
             list of pathlib.Path: List of font paths.
         """
-        return [path.name for path in self.FONT_DIR_USER.expanduser().rglob("*")]
+        return [path.name for path in self.user_font_dir.expanduser().rglob("*")]
 
     def load(self):
         """Load the fonts."""
         # ensure that the user font directory exists
-        self.FONT_DIR_USER.expanduser().mkdir(parents=True, exist_ok=True)
+        self.user_font_dir.expanduser().mkdir(parents=True, exist_ok=True)
 
         # get system and user font files
         system_font_name_list = self.get_system_font_name_list()
@@ -189,7 +194,7 @@ class FontLoaderLinux(FontLoader):
 
         # check if the font exists as broken link at user level
         # in this case remove it and continue execution
-        font_file_user_path = self.FONT_DIR_USER.expanduser() / font_file_name
+        font_file_user_path = self.user_font_dir.expanduser() / font_file_name
         if font_file_user_path.is_symlink():
             logger.debug(
                 "Dead symbolic link found for font '%s' in user directory, "
@@ -233,6 +238,38 @@ class FontLoaderLinux(FontLoader):
                 font_file_path,
                 error,
             )
+
+
+class FontLoaderLinux(FontLoaderUnix):
+    """Font loader for Linux."""
+
+    GREETINGS = "Font loader for Linux selected"
+    SYSTEM_FONT_DIR = Path("/") / "usr" / "share" / "fonts"
+    USER_FONT_DIR = Path("~") / ".fonts"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            system_font_dir=self.SYSTEM_FONT_DIR,
+            user_font_dir=self.USER_FONT_DIR,
+            **kwargs,
+        )
+
+
+class FontLoaderMacOS(FontLoaderUnix):
+    """Font loader for macOS."""
+
+    GREETINGS = "Font loader for macOS selected"
+    SYSTEM_FONT_DIR = Path("/") / "System" / "Library" / "Fonts"
+    USER_FONT_DIR = Path("~") / "Library" / "Fonts"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            system_font_dir=self.SYSTEM_FONT_DIR,
+            user_font_dir=self.USER_FONT_DIR,
+            **kwargs,
+        )
 
 
 class FontLoaderWindows(FontLoader):
