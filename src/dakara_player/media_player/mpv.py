@@ -40,8 +40,6 @@ MPV_ERROR_LEVELS = {
 
 PLAYER_IS_AVAILABLE_ATTEMPTS = 5
 
-USE_PATH_AUDIO = -1
-
 
 # monkey patch mpv to silent socket close failures on windows
 if mpv is not None:
@@ -397,16 +395,14 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
 
         if what == "song":
             # manage instrumental track/file
-            track_id_audio = self.playlist_entry_data["song"].track_id_audio
-            if track_id_audio is not None:
-                if track_id_audio == USE_PATH_AUDIO:
-                    path_audio = self.playlist_entry_data["song"].path_audio
-                    self.player.audio_files = [str(path_audio)]
-                    logger.debug("Requesting to play audio file %s", path_audio)
 
-                else:
-                    self.player.audio = track_id_audio
-                    logger.debug("Requesting to play audio track %i", track_id_audio)
+            path_audio = self.playlist_entry_data["song"].path_audio
+            if path_audio:
+                self.player.audio_files = [str(path_audio)]
+
+            track_id_audio = self.playlist_entry_data["song"].track_id_audio
+            self.player.aid = track_id_audio
+            logger.debug(f"Requesting to play audio track {track_id_audio}")
 
             # if the subtitle file cannot be discovered, do not request it
             if self.playlist_entry_data["song"].path_subtitle:
@@ -537,9 +533,9 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
             self.player_data["skip"] = True
 
         # set transition
-        self.playlist_entry_data["transition"].path = (
-            self.background_loader.backgrounds["transition"]
-        )
+        self.playlist_entry_data[
+            "transition"
+        ].path = self.background_loader.backgrounds["transition"]
         self.generate_text("transition")
 
         if autoplay:
@@ -562,8 +558,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
         self.playlist_entry_data["song"].path_subtitle = path_subtitle
 
         # manage instrumental
-        if playlist_entry["use_instrumental"]:
-            self.manage_instrumental(playlist_entry, file_path)
+        self.manage_instrumental(playlist_entry, file_path)
 
     def manage_instrumental(self, playlist_entry, file_path):
         """Manage the requested instrumental track.
@@ -581,23 +576,10 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
         """
         # get instrumental file if possible
         audio_path = self.get_instrumental_file(file_path)
-
-        if audio_path:
-            self.playlist_entry_data["song"].track_id_audio = USE_PATH_AUDIO
-            self.playlist_entry_data["song"].path_audio = audio_path
-            logger.info(
-                "Requesting to play instrumental file '%s' for '%s'",
-                audio_path,
-                file_path,
-            )
-
-            return
-
-        # otherwise mark to use the 2nd track when starting to read the media
-        # mpv use different index for each track, so we can safely request the
-        # second audio track
-        self.playlist_entry_data["song"].track_id_audio = 2
-        logger.info("Requesting to play instrumental track of '%s'", file_path)
+        self.playlist_entry_data["song"].path_audio = audio_path
+        self.playlist_entry_data["song"].track_id_audio = (
+            2 if playlist_entry.get("use_instrumental", False) else 1
+        )
 
     def clear_playlist_entry_player(self):
         """Clean playlist entry data after being played."""
