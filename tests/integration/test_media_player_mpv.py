@@ -289,7 +289,7 @@ class MediaPlayerMpvIntegrationTestCase(TestCasePollerKara):
             self.assertEqual(mpv_player.player.path, str(self.song2_path))
 
             # check audio track
-            self.assertEqual(mpv_player.player.audio, 3)
+            self.assertEqual(mpv_player.player.audio, 2)
 
             # check audio file
             self.assertEqual(len(mpv_player.player.audio_files), 1)
