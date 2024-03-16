@@ -396,7 +396,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
             if path_audio:
                 self.player.audio_files = [path_audio]
 
-            if self.playlist_entry_data["use_instrumental"]:
+            if self.playlist_entry_data.get("use_instrumental", None):
                 self.player.aid = 2
                 logger.debug("Requesting to play audio track 2")
             else:
