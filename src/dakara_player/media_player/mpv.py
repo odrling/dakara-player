@@ -224,6 +224,9 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
             except mpv.MPVError:
                 logger.error(f"Unable to set mpv option '{key}' to value '{value}'")
 
+        # used for idle/transitions screens
+        self.player.image_display_duration = "inf"
+
         # playlist entry objects
         self.playlist_entry_data = {}
         self.clear_playlist_entry_player()
@@ -361,6 +364,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
         self.player.audio_files = []
         self.player.audio = "auto"
         self.player.pause = False
+        self.player.end = "none"
 
         if what == "idle":
             # if already idle, do nothing
@@ -368,23 +372,15 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
                 return
 
             self.generate_text("idle")
-            self.player.loadfile(
-                self.background_loader.backgrounds["idle"],
-                "replace",
-                {"sub-files": self.text_paths["idle"]},
-            )
+            self.player.play(self.background_loader.backgrounds["idle"])
+            self.player.sub_files = self.text_paths["idle"]
 
             return
 
         if what == "transition":
-            self.player.loadfile(
-                self.playlist_entry_data["transition"].path,
-                "replace",
-                {
-                    "sub-files": self.text_paths["transition"],
-                    "end": str(self.durations["transition"]),
-                },
-            )
+            self.player.play(self.playlist_entry_data["transition"].path)
+            self.player.sub_files = self.text_paths["transition"]
+            self.player.end = str(self.durations["transition"])
 
             return
 
