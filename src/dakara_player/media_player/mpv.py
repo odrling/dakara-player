@@ -398,7 +398,7 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
 
             if self.playlist_entry_data.get("use_instrumental", None):
                 self.player.aid = 2
-                logger.debug("Requesting to play audio track 2")
+                logger.info("Requesting to play instrumental audio track")
             else:
                 self.player.aid = 1
                 logger.debug("Requesting to play audio track 1")
@@ -579,18 +579,12 @@ class MediaPlayerMpvOld(MediaPlayerMpv):
 
         if audio_path:
             self.playlist_entry_data["song"].path_audio = audio_path
-            logger.info(
-                "Requesting to play instrumental file '%s' for '%s'",
-                audio_path,
-                file_path,
-            )
 
             return
 
         # otherwise mark to look for instrumental track in internal tracks when
         # starting to read the media
         self.playlist_entry_data["song"].path_audio = None
-        logger.info("Requesting to play instrumental track of '%s'", file_path)
 
     def clear_playlist_entry_player(self):
         """Clean playlist entry data after being played."""

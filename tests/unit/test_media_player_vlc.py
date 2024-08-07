@@ -1116,7 +1116,6 @@ class MediaPlayerVlcTestCase(BaseTestCase):
             },
             tempdir=tempdir,
         ) as (_, _, (_, mocked_background_loader_class, _)):
-
             # assert the instanciation of the background loader
             mocked_background_loader_class.assert_called_with(
                 destination=tempdir,
