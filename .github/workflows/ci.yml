@@ -121,7 +121,7 @@ jobs:
         run: python -m isort . --check
 
       - name: Run style checks
-        run: python -m black . --check
+        run: python -m black . --check --diff
 
       - name: Run ruff linter
         run: python -m ruff check .
