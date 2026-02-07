@@ -1,9 +1,11 @@
 """Manage audio files independently of the media player."""
 
+import pathlib
+
 import filetype
 
 
-def get_audio_files(filepath):
+def get_audio_files(filepath: pathlib.Path) -> list[pathlib.Path]:
     """Get audio files with the same name as provided file.
 
     Args:
@@ -12,9 +14,11 @@ def get_audio_files(filepath):
     Returns:
         list of pathlib.Path: List of paths of audio files.
     """
-    # list files with similar stem
-    items = filepath.parent.glob(f"{filepath.stem}.*")
-    return [item for item in items if item != filepath and is_audio_file(item)]
+    audio_file = filepath.with_suffix(".mka")
+    if audio_file.exists():
+        return [audio_file]
+
+    return []
 
 
 def is_audio_file(file_path):
